@@ -14,8 +14,9 @@ class Conta
     private $tipo_conta;
     private $limite_saque;
     
-    public function Conta($numero_conta, $tipo_conta){
+    public function __construct($numero_conta, $tipo_conta){
         $this->numero_conta = $numero_conta;
+        $this->tipo_conta = $tipo_conta;
         $this->ContaTipo($tipo_conta);
     }
     
@@ -24,13 +25,11 @@ class Conta
          * 1 - Conta Corrente
          * 2 - Conta Poupança
          * */
-        
         switch ($tipo_conta){
             case 1:
                 $this->taxa_saque = 2.5;
                 $this->limite_saque = 600;
-                break;
-                
+                break;                
             case 2:
                 $this->taxa_saque = 0.8;
                 $this->limite_saque = 1000;
@@ -39,7 +38,15 @@ class Conta
     }
     
     public function SaldoAtual(){
-        return "Saldo Atual: " . $this->saldo;
+        return $this->saldo;
+    }
+    
+    private function VerificaSaldo($valor){
+        if($this->saldo >= $valor){
+            return true;
+        }else{
+            return false;
+        }
     }
 
     public function Saque($valor){
@@ -47,13 +54,13 @@ class Conta
         $aux_valor = $valor + $this->taxa_saque;
         
         if($valor <= $this->limite_saque){
-            if($this->saldo>=$aux_valor){
+            if($this->VerificaSaldo($aux_valor)){
                 $this->saldo -= $aux_valor;
                 
-                $mensagem = "Valor sacado: " . $valor . " " . $this->SaldoAtual();
+                $mensagem = "Valor sacado: " . $valor . " Saldo Atual: " . $this->SaldoAtual();
                 
             }else{
-                $mensagem = "Saldo insuficiente! " . $this->SaldoAtual();
+                $mensagem = "Saldo insuficiente! Saldo Atual: " . $this->SaldoAtual();
             }
         }else{
             $mensagem = "Limite de saque: " . $this->limite_saque;
@@ -75,9 +82,13 @@ class Conta
     public function Tranferencia($numero_conta_destino, $tipo_conta, $valor){
         $valor = abs($valor);
         
-        $conta = new Conta($numero_conta_destino,$tipo_conta);
-        
-        $mensagem = $conta->Deposito($valor) . " na conta: " . $numero_conta_destino;
+        if($this->VerificaSaldo($valor)){        
+            $this->Saque($valor);
+            $conta = new Conta($numero_conta_destino,$tipo_conta);
+            $mensagem = $conta->Deposito($valor) . " na conta: " . $numero_conta_destino;
+        }else{
+            $mensagem = "Saldo Insuficiente";
+        }
         
         return $mensagem;
     }
